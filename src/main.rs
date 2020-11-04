@@ -5,8 +5,7 @@ use std::thread;
 mod model;
 use model::island;
 use island::Island;
-use island::DEFAULT_ISLAND_SIZE;
-use model::monkeys::Erratic_Monkey;
+use model::monkeys::ErraticMonkey;
 
 mod game_engine;
 use game_engine::user_input;
@@ -14,7 +13,9 @@ use game_engine::monkeys_moving;
 
 fn main() {
     let mut island = Island::new(10, 0);
-    island.get_erratics().push(Erratic_Monkey::new(10, 3, 7));
+    island.add_erratic(ErraticMonkey::new(10, 6, 1));
+    island.add_erratic(ErraticMonkey::new(10, 6, 2));
+    
 
     let island_mut = Arc::new(Mutex::new(island));
     let island2 = island_mut.clone();
@@ -28,6 +29,6 @@ fn main() {
     std::mem::drop(island);
 
     user_input::get_user_input(island_mut);
-
     monkeys_moving_thread.join().unwrap();
+
 }

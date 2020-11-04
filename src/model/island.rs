@@ -1,18 +1,20 @@
 use super::bottle::Bottle;
 use super::pirate::Pirate;
 use super::monkeys;
-use monkeys::Hunter_Monkey;
-use monkeys::Erratic_Monkey;
+use monkeys::HunterMonkey;
+use monkeys::ErraticMonkey;
+use monkeys::MonkeyMove;
 use super::treasure::Treasure;
 
 pub const DEFAULT_ISLAND_SIZE: usize = 10;
 
-#[derive(PartialEq,Clone)]
+#[derive(PartialEq,Clone,Debug)]
 pub enum Direction {
     UP,
     DOWN,
     LEFT,
-    RIGHT
+    RIGHT,
+    NONE
 }
 
 #[derive(Clone)]
@@ -21,8 +23,8 @@ pub struct Island {
     grid: Vec<Vec<char>>,
     difficulty_level: usize,
     pub pirate: Pirate,
-    hunters: Vec<Hunter_Monkey>,
-    erratics: Vec<Erratic_Monkey>,
+    hunters: Vec<HunterMonkey>,
+    erratics: Vec<ErraticMonkey>,
     bottles: Vec<Bottle>,
     treasure: Treasure
 }
@@ -35,8 +37,8 @@ impl Island {
             grid : Island::create_grid(new_size),
             difficulty_level : new_difficulty_level,
             pirate : Pirate::new_default(new_size),
-            hunters : vec![Hunter_Monkey::new_default(new_size)],
-            erratics: vec![Erratic_Monkey::new_default(new_size)],
+            hunters : vec![HunterMonkey::new_default(new_size)],
+            erratics: vec![ErraticMonkey::new_default(new_size)],
             bottles : vec![Bottle::new_default(new_size)],
             treasure : Treasure::new()
         }
@@ -63,12 +65,12 @@ impl Island {
         
         // 'H' where hunters are
         for hunter in self.hunters.iter() {
-            self.grid[hunter.get_x()][hunter.get_y()] = 'H'; 
+            self.grid[hunter.get_x() as usize][hunter.get_y() as usize] = 'H'; 
         }
 
         // 'E' where erratics are
         for erratic in self.erratics.iter() {
-            self.grid[erratic.get_x()][erratic.get_y()] = 'E'; 
+            self.grid[erratic.get_x() as usize][erratic.get_y() as usize] = 'E'; 
         }
 
         // 'B' where the bottles are
@@ -91,7 +93,6 @@ impl Island {
     pub fn handle_collisions(&mut self) {
         self.handle_pirate_monkey_collision();
         self.handle_pirate_bottle_collision();
-        
     }
 
     pub fn handle_pirate_monkey_collision(&mut self){
@@ -100,7 +101,7 @@ impl Island {
         let mut is_dead = false;
 
         for hunter in hunters {
-            if (hunter.get_x() == self.get_pirate().get_x()) && (hunter.get_y() == self.get_pirate().get_y()) {
+            if (hunter.get_x() == self.get_pirate().get_x() as i8) && (hunter.get_y() == self.get_pirate().get_y() as i8) {
                 self.get_pirate().set_alive(false);
                 is_dead = true;
                 break;
@@ -109,26 +110,53 @@ impl Island {
 
         if !is_dead {
             for erratic in erratics {
-                if (erratic.get_x() == self.get_pirate().get_x()) && (erratic.get_y() == self.get_pirate().get_y()) {
+                if (erratic.get_x() == self.get_pirate().get_x() as i8) && (erratic.get_y() == self.get_pirate().get_y() as i8) {
                     self.get_pirate().set_alive(false);
                     break;
                 }
             }
         }
-        
     }
 
     fn handle_pirate_bottle_collision(&mut self) {
-        let mut pirate = self.get_pirate();
-        let mut bottles = self.get_size();
+        let mut empty_bottles: Vec<Bottle> = Vec::new();
+        
+        // Loop to drink to bottle
+        for bottle in self.bottles.iter() {
+            if (bottle.get_x() == self.pirate.get_x()) && (bottle.get_y() == self.pirate.get_y()) {
+                self.pirate.drink_bottle(bottle.get_energetic_value());
+                empty_bottles.push(bottle.clone());
+            }
+        }
 
-        // TODO collisions boutrilles / pirate
-        // for i in 0..bottles.len() {
-        //     if (bottles[i].get_x() == pirate.get_x()) && (bottles[i].get_y() == pirate.get_y()) {
-        //         pirate.drink_bottle(bottles[i].get_energetic_value());
-        //         bottles.remove(i);
-        //     }
-        // }
+        // Loop to remove empty bottle
+        for empty_bottle in empty_bottles.iter() {
+            for i in 0..self.bottles.len() {
+                if empty_bottle.clone() == self.bottles[i] {
+                    self.bottles.remove(i);
+                }
+            }
+        }
+    }
+
+    pub fn move_monkeys(&mut self) {
+        let hunters_copy = self.hunters.clone();
+        for hunter in self.hunters.iter_mut() {
+            hunter.monkey_move(self.pirate, hunters_copy.clone(), self.erratics.clone());
+        }
+
+        let erratics_copy = self.erratics.clone();
+        for erratic in self.erratics.iter_mut() {
+            erratic.monkey_move(self.pirate, self.hunters.clone(), erratics_copy.clone());
+        }
+    }
+
+    pub fn get_pirate(&mut self) -> &mut Pirate {
+        &mut self.pirate
+    }
+
+    pub fn get_bottles(&mut self) -> &mut Vec<Bottle> {
+        &mut self.bottles
     }
 
     pub fn is_treasure_discovered(&mut self) -> bool {
@@ -142,21 +170,25 @@ impl Island {
     pub fn set_size(&mut self, new_size: usize) {
         self.size = new_size
     }
-
-    pub fn get_pirate(&mut self) -> &mut Pirate {
-        &mut self.pirate
-    }
-
-    pub fn get_hunters(&mut self) -> &mut Vec<Hunter_Monkey> {
+    
+    pub fn get_hunters(&mut self) -> &mut Vec<HunterMonkey> {
         &mut self.hunters
     }
 
-    pub fn get_erratics(&mut self) -> &mut Vec<Erratic_Monkey> {
+    pub fn add_hunter(&mut self, hunter: HunterMonkey) {
+        self.hunters.push(hunter)
+    }
+
+    pub fn get_erratics(&mut self) -> &mut Vec<ErraticMonkey> {
         &mut self.erratics
     }
 
-    pub fn get_bottles(&mut self) -> &mut Vec<Bottle> {
-        &mut self.bottles
+    pub fn add_erratic(&mut self, erratic: ErraticMonkey) {
+        self.erratics.push(erratic)
+    }
+
+    pub fn get_monkeys(&mut self) -> (&mut Vec<HunterMonkey>, &mut Vec<ErraticMonkey>) {
+        (&mut self.hunters, &mut self.erratics)
     }
 
     pub fn get_treasure(&self) -> Treasure {

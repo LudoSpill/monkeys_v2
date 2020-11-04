@@ -1,7 +1,7 @@
 use super::island;
 use island::Direction;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Pirate {
     x: usize,
     y: usize,
@@ -95,6 +95,7 @@ impl Pirate {
                 self.set_y(self.y+1);
                 moved = true;             
             }
+            _ => ()
         }
 
         if moved == true {
