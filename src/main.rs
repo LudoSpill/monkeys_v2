@@ -5,17 +5,13 @@ use std::thread;
 mod model;
 use model::island;
 use island::Island;
-use model::monkeys::ErraticMonkey;
 
 mod game_engine;
 use game_engine::user_input;
 use game_engine::monkeys_moving;
 
 fn main() {
-    let mut island = Island::new(10, 0);
-    island.add_erratic(ErraticMonkey::new(10, 6, 1));
-    island.add_erratic(ErraticMonkey::new(10, 6, 2));
-    
+    let island = Island::new(10, 2, 2, 0, 2);
 
     let island_mut = Arc::new(Mutex::new(island));
     let island2 = island_mut.clone();

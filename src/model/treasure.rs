@@ -4,15 +4,12 @@ pub struct Treasure {
     y: usize
 }
 
-const DEFAULT_TREASURE_X: usize = 9;
-const DEFAULT_TREASURE_Y: usize = 2;
-
 impl Treasure {
 
-    pub fn new() -> Self {
+    pub fn new(new_x: usize, new_y: usize) -> Self {
         Self{
-            x: DEFAULT_TREASURE_X,
-            y: DEFAULT_TREASURE_Y
+            x: new_x,
+            y: new_y
         }
     }
 

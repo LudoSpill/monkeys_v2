@@ -10,24 +10,20 @@ pub trait MonkeyMove {
 pub struct HunterMonkey {
     x: i8,
     y: i8,
-    speed: usize,
     island_size: usize
 }
 
-const DEFAULT_HUNTER_X: i8 = 9;
-const DEFAULT_HUNTER_Y: i8 = 1;
-const DEFAULT_SPEED: usize = 0;
 
 impl HunterMonkey {
-
-    pub fn new_default(new_island_size: usize) -> Self {
-        HunterMonkey{
-            x : DEFAULT_HUNTER_X,
-            y : DEFAULT_HUNTER_Y,
-            speed : DEFAULT_SPEED,
+    
+    pub fn new(new_island_size: usize, new_x: i8, new_y: i8) -> Self {
+        Self {
+            x : new_x,
+            y : new_y,
             island_size : new_island_size
         }
     }
+
 
     pub fn get_x(&self) -> i8 {
         self.x
@@ -50,7 +46,7 @@ impl HunterMonkey {
         let x_dist: f64 = pirate.get_x() as f64 - self.x as f64;
         let y_dist: f64 = pirate.get_y() as f64 - self.y as f64;
                 
-        let mut angle = y_dist.atan2(x_dist);
+        let angle = y_dist.atan2(x_dist);
 
         angle
     }
@@ -108,7 +104,6 @@ impl HunterMonkey {
             }
         }
 
-        println!("unavail dirs : {:?}\r", unavailable_directions);
         unavailable_directions
     }
 
@@ -118,67 +113,67 @@ impl HunterMonkey {
         // 4 special cases:
         if angle == HunterMonkey::to_radian(180.0) {
             potential_directions.push(Direction::UP);
-            potential_directions.push(Direction::NONE);
+            potential_directions.push(Direction::LEFT);
+            potential_directions.push(Direction::RIGHT);
+
         }
         else if angle == HunterMonkey::to_radian(-90.0) {
             potential_directions.push(Direction::LEFT);
-            potential_directions.push(Direction::NONE);
+            potential_directions.push(Direction::UP);
+            potential_directions.push(Direction::DOWN);
+
         }
         else if angle == 0.0 {
             potential_directions.push(Direction::DOWN);
-            potential_directions.push(Direction::NONE);
+            potential_directions.push(Direction::LEFT);
+            potential_directions.push(Direction::RIGHT);
         }
         else if angle == HunterMonkey::to_radian(90.0) {
             potential_directions.push(Direction::RIGHT);
-            potential_directions.push(Direction::NONE);
+            potential_directions.push(Direction::UP);
+            potential_directions.push(Direction::DOWN);
         }
 
         // 8 nominal cases:
         else if angle > HunterMonkey::to_radian(-180.0) && angle <= HunterMonkey::to_radian(-135.0) {   // #1
             potential_directions.push(Direction::UP);
             potential_directions.push(Direction::LEFT);            
-            potential_directions.push(Direction::NONE);
         }
         else if angle >= HunterMonkey::to_radian(-135.0) && angle < HunterMonkey::to_radian(-90.0) {    // #2
             potential_directions.push(Direction::LEFT);
             potential_directions.push(Direction::UP);            
-            potential_directions.push(Direction::NONE);
+
         }
         else if angle > HunterMonkey::to_radian(-90.0) && angle <= HunterMonkey::to_radian(-45.0) {     // #3
             potential_directions.push(Direction::LEFT);
             potential_directions.push(Direction::DOWN);            
-            potential_directions.push(Direction::NONE);
+
         }
         else if angle >= HunterMonkey::to_radian(-45.0) && angle < 0.0 {           // #4
             potential_directions.push(Direction::DOWN);
             potential_directions.push(Direction::LEFT);            
-            potential_directions.push(Direction::NONE);
         }
         else if angle > 0.0 && angle <= HunterMonkey::to_radian(45.0) {            // #5
             potential_directions.push(Direction::DOWN);
             potential_directions.push(Direction::RIGHT);            
-            potential_directions.push(Direction::NONE);
         }
         else if angle >= HunterMonkey::to_radian(45.0) && angle < HunterMonkey::to_radian(90.0) {    // #6
             potential_directions.push(Direction::RIGHT);
             potential_directions.push(Direction::DOWN);            
-            potential_directions.push(Direction::NONE);
         }
         else if angle > HunterMonkey::to_radian(90.0) && angle <= HunterMonkey::to_radian(135.0) {   // #7
             potential_directions.push(Direction::RIGHT);
             potential_directions.push(Direction::UP);            
-            potential_directions.push(Direction::NONE);
         }
         else if angle >= HunterMonkey::to_radian(135.0) && angle < HunterMonkey::to_radian(180.0) {  // #8
             potential_directions.push(Direction::UP);
             potential_directions.push(Direction::RIGHT);            
-            potential_directions.push(Direction::NONE);
         }
         else {
             println!("Wrong angle : {}\r", angle);
-            potential_directions.push(Direction::NONE);
         }
-        
+        potential_directions.push(Direction::NONE);
+
         potential_directions
     }
 
@@ -191,21 +186,28 @@ impl HunterMonkey {
 impl MonkeyMove for HunterMonkey{
     fn monkey_move(&mut self, pirate: Pirate, hunters: Vec<HunterMonkey>, erratics: Vec<ErraticMonkey>){
         let angle_to_pirate = self.get_angle_to_pirate(pirate);
-        println!("Angle to pirate : {}\r",angle_to_pirate);
+        // println!("Angle to pirate : {}\r",angle_to_pirate);
+
+        for _ in 0..20{
+            println!("\r");
+        }
 
         let pot_directions = HunterMonkey::get_potential_direction(angle_to_pirate);
-        let available_directions = self.get_unavailable_directions(hunters, erratics);
+        println!("potential dirs : {:?}\r", pot_directions);
+        let unavailable_directions = self.get_unavailable_directions(hunters, erratics);
+        println!("unavail dirs : {:?}\r", unavailable_directions);
         let mut actual_direction_indice = 0;
 
         for i in 0..pot_directions.len() {
-            for avail_dir in available_directions.iter() {
-                if pot_directions[i] == avail_dir.clone() {
+            for unavail_dir in unavailable_directions.iter() {
+                if pot_directions[i] == unavail_dir.clone() {
                     actual_direction_indice +=1;
                 }
             }
         }
 
         let actual_direction = pot_directions[actual_direction_indice].clone();
+        println!("Chosen dir: {:?}\r", actual_direction);
 
         match actual_direction {
             Direction::UP => self.set_x(self.x-1),
@@ -225,18 +227,8 @@ pub struct ErraticMonkey {
     island_size: usize
 }
 
-const DEFAULT_ERRATIC_X: i8 = 7;
-const DEFAULT_ERRATIC_Y: i8 = 3;
-
 impl ErraticMonkey {
 
-    pub fn new_default(new_island_size: usize) -> Self {
-        ErraticMonkey{
-            x : DEFAULT_ERRATIC_X,
-            y : DEFAULT_ERRATIC_Y,
-            island_size : new_island_size
-        }
-    }
 
     pub fn new(new_island_size: usize, new_x: i8, new_y: i8) -> Self {
         ErraticMonkey{

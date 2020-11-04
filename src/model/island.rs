@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use super::bottle::Bottle;
 use super::pirate::Pirate;
 use super::monkeys;
@@ -5,8 +7,6 @@ use monkeys::HunterMonkey;
 use monkeys::ErraticMonkey;
 use monkeys::MonkeyMove;
 use super::treasure::Treasure;
-
-pub const DEFAULT_ISLAND_SIZE: usize = 10;
 
 #[derive(PartialEq,Clone,Debug)]
 pub enum Direction {
@@ -22,26 +22,156 @@ pub struct Island {
     size : usize,
     grid: Vec<Vec<char>>,
     difficulty_level: usize,
-    pub pirate: Pirate,
+    pirate: Pirate,
+    nb_hunters: usize,
     hunters: Vec<HunterMonkey>,
+    nb_erratics: usize,
     erratics: Vec<ErraticMonkey>,
+    nb_max_bottles: usize,
     bottles: Vec<Bottle>,
     treasure: Treasure
 }
 
 impl Island {
 
-    pub fn new(new_size: usize, new_difficulty_level: usize) -> Self {
+    pub fn new(new_size: usize, new_nb_hunters: usize, new_nb_erratics: usize, new_difficulty_level: usize, new_nb_max_bottles: usize) -> Self {
+        
+        // Initializing the game
+        let (
+            new_x_treasure, new_y_treasure,
+            new_x_pirate, new_y_pirate, 
+            bottles_coords, 
+            erratics_coords, 
+            hunters_coords
+        ) = Island::init_island(new_size, new_nb_hunters, new_nb_erratics, new_difficulty_level, new_nb_max_bottles);
+
+        let mut new_bottles: Vec<Bottle> = Vec::new();
+        for i in 0..new_nb_max_bottles {
+            new_bottles.push(Bottle::new(new_size, bottles_coords[i][0], bottles_coords[i][1]));
+        }
+
+        let mut new_erratics: Vec<ErraticMonkey> = Vec::new();
+        for i in 0..new_nb_hunters {
+            new_erratics.push(ErraticMonkey::new(new_size, erratics_coords[i][0] as i8, erratics_coords[i][1] as i8));
+        }
+
+        let mut new_hunters: Vec<HunterMonkey> = Vec::new();
+        for i in 0..new_nb_hunters {
+            new_hunters.push(HunterMonkey::new(new_size, hunters_coords[i][0] as i8, hunters_coords[i][1] as i8));
+        }
+
         Self {
             size : new_size,
             grid : Island::create_grid(new_size),
             difficulty_level : new_difficulty_level,
-            pirate : Pirate::new_default(new_size),
-            hunters : vec![HunterMonkey::new_default(new_size)],
-            erratics: vec![ErraticMonkey::new_default(new_size)],
-            bottles : vec![Bottle::new_default(new_size)],
-            treasure : Treasure::new()
+            pirate : Pirate::new(new_size, new_x_pirate, new_y_pirate),
+            nb_hunters: new_nb_hunters,
+            hunters : new_hunters,
+            nb_erratics: new_nb_erratics,
+            erratics: new_erratics,
+            nb_max_bottles: new_nb_max_bottles,
+            bottles : new_bottles,
+            treasure : Treasure::new(new_x_treasure, new_y_treasure)
         }
+    }
+
+    fn init_island(new_size: usize, new_nb_hunters: usize, new_nb_erratics: usize, new_difficulty_level: usize, new_nb_max_bottles: usize) 
+        -> (usize, usize, usize, usize, Vec<[usize; 2]>, Vec<[usize; 2]>, Vec<[usize; 2]>)
+    {
+        
+        let (x_treasure, y_treasure) = Island::init_treasure(new_size);
+        println!("Treasure : [{},{}]\r",x_treasure,y_treasure);
+        let (x_pirate, y_pirate) = Island::init_pirate(new_size,x_treasure,y_treasure);
+        println!("Pirate : [{},{}]\r",x_pirate,y_pirate);
+        let bottles: Vec<[usize; 2]> = Island::init_bottles(new_size, new_nb_max_bottles);
+        println!("Bottles: {:?}", bottles.clone());
+        let erratics = Island::init_erratics(new_size, new_nb_erratics, x_pirate, y_pirate);
+        println!("Erratics: {:?}", erratics.clone());
+        let hunters = Island::init_hunters(new_size, new_nb_erratics, x_pirate, y_pirate, erratics.clone());
+        println!("Erratics: {:?}", hunters.clone());
+        (x_treasure, y_treasure, x_pirate, y_pirate, bottles, erratics, hunters)
+    }
+
+    fn init_treasure(new_size: usize) -> (usize, usize) {
+        let mut rng = rand::thread_rng();
+        let x = rng.gen_range(0,new_size-1);
+        let y = rng.gen_range(0,new_size-1);
+        (x, y)
+    }
+
+    fn init_pirate(new_size: usize, x_treasure: usize, y_treasure: usize) -> (usize, usize) {
+        let mut rng = rand::thread_rng();
+        let mut x = rng.gen_range(0,new_size-1);
+        let mut y = rng.gen_range(0,new_size-1);
+
+        while x == x_treasure && y == y_treasure {
+            x = rng.gen_range(0,new_size-1);
+            y = rng.gen_range(0,new_size-1);
+        }
+        (x, y)
+    }
+
+    fn init_bottles(new_size: usize, nb_max_bottles: usize) -> Vec<[usize; 2]> {
+        let mut bottles: Vec<[usize; 2]> = Vec::new();
+        let mut rng = rand::thread_rng();
+        
+        for _ in 0..nb_max_bottles {
+            bottles.push([rng.gen_range(0,new_size-1),rng.gen_range(0,new_size-1)]);
+            for i in 0..bottles.len()-1 {
+                while bottles[bottles.len()-1] == bottles[i] {
+                    bottles.pop();
+                    bottles.push([rng.gen_range(0,new_size-1),rng.gen_range(0,new_size-1)])
+                }
+            }
+        }
+        bottles
+    }
+
+    fn init_erratics(new_size: usize, nb_erratics: usize, x_pirate: usize, y_pirate: usize) -> Vec<[usize; 2]> {
+        let mut erratics: Vec<[usize; 2]> = Vec::new();
+        let mut rng = rand::thread_rng();
+        
+        for _ in 0..nb_erratics {
+            erratics.push([rng.gen_range(0,new_size-1) ,rng.gen_range(0,new_size-1)]);
+            for i in 0..erratics.len()-1 {
+                while (erratics[erratics.len()-1] == erratics[i]) || 
+                       Island::distance_between(x_pirate, y_pirate, erratics[erratics.len()-1][0], erratics[erratics.len()-1][1]) < 3.0 
+                {
+                    erratics.pop();
+                    erratics.push([rng.gen_range(0,new_size-1) ,rng.gen_range(0,new_size-1)]);
+                }
+            }
+        }
+
+        erratics
+    }
+
+    fn init_hunters(new_size: usize, nb_hunters: usize, x_pirate: usize, y_pirate: usize, erratics: Vec<[usize; 2]>) -> Vec<[usize; 2]> {
+        let mut hunters: Vec<[usize; 2]> = Vec::new();
+        let mut rng = rand::thread_rng();
+        
+        for _ in 0..nb_hunters {
+            hunters.push([rng.gen_range(0,new_size-1) ,rng.gen_range(0,new_size-1)]);
+            for i in 0..hunters.len()-1 {
+                for erratic in erratics.iter() {
+                    while (hunters[hunters.len()-1] == hunters[i]) || 
+                           Island::distance_between(x_pirate, y_pirate, hunters[hunters.len()-1][0], hunters[hunters.len()-1][1]) < 3.0 ||
+                           hunters[hunters.len()-1] == erratic.clone()
+                    {
+                        hunters.pop();
+                        hunters.push([rng.gen_range(0,new_size-1) ,rng.gen_range(0,new_size-1)]);
+                    }
+                }
+                
+            }
+        }
+        hunters
+    }
+
+    fn distance_between(x1: usize, y1: usize, x2: usize, y2: usize) -> f64 {
+        let diff_x: f64 = (x1 as f64 - x2 as f64).powf(2.0);
+        let diff_y: f64 = (y1 as f64 - y2 as f64).powf(2.0);
+        (diff_x + diff_y).sqrt()
     }
 
     /**
@@ -182,13 +312,9 @@ impl Island {
     pub fn get_erratics(&mut self) -> &mut Vec<ErraticMonkey> {
         &mut self.erratics
     }
-
+    
     pub fn add_erratic(&mut self, erratic: ErraticMonkey) {
         self.erratics.push(erratic)
-    }
-
-    pub fn get_monkeys(&mut self) -> (&mut Vec<HunterMonkey>, &mut Vec<ErraticMonkey>) {
-        (&mut self.hunters, &mut self.erratics)
     }
 
     pub fn get_treasure(&self) -> Treasure {

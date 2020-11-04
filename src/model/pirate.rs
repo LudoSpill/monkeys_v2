@@ -8,32 +8,28 @@ pub struct Pirate {
     current_energy: i8,
     max_energy: i8,
     is_alive: bool,
-    is_drunk: bool,
     island_size: usize
 }
 
-const DEFAULT_X: usize = 0;
-const DEFAULT_Y: usize = 0;
 const MAX_ENERGY: i8 = 100;
 
 
 impl Pirate {
 
-    pub fn new_default(new_island_size: usize) -> Self {
+    pub fn new(new_island_size: usize, new_x: usize, new_y: usize) -> Self {
         Self{
-            x : DEFAULT_X,
-            y : DEFAULT_Y,
+            x : new_x,
+            y : new_y,
             current_energy : MAX_ENERGY,
             max_energy : MAX_ENERGY,
             is_alive : true,
-            is_drunk : false,
             island_size : new_island_size
         }
     }
 
 
     pub fn get_x(&self) -> usize {
-        self.x
+        self.x.clone()
     }
 
     pub fn set_x(&mut self, new_x: usize) {
@@ -41,7 +37,7 @@ impl Pirate {
     }
 
     pub fn get_y(&self) -> usize {
-        self.y
+        self.y.clone()
     }
 
     pub fn set_y(&mut self, new_y: usize) {

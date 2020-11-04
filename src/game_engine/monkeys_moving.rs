@@ -7,7 +7,7 @@ use crate::model::island::Island;
 pub fn move_monkeys(island_mut: Arc<Mutex<Island>>) {
 
     loop {
-        let sleeping_time = time::Duration::from_secs(1);
+        let sleeping_time = time::Duration::from_secs(3);
         thread::sleep(sleeping_time);
         
         let mut island = island_mut.lock().unwrap();

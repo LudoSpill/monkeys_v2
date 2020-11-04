@@ -7,15 +7,15 @@ pub struct Bottle {
     island_size : usize
 }
 
-const DEFAULT_X: usize = 7;
-const DEFAULT_Y: usize = 7;
 const DEFAULT_ENERGETIC_VALUE: usize = 50;
 
 impl Bottle {
-    pub fn new_default(new_island_size: usize) -> Self {
+
+
+    pub fn new(new_island_size: usize, new_x: usize, new_y: usize) -> Self {
         Self{
-            x : DEFAULT_X,
-            y : DEFAULT_Y,
+            x : new_x,
+            y : new_y,
             energetic_value : DEFAULT_ENERGETIC_VALUE,
             is_visible : true,
             island_size : new_island_size
