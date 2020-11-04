@@ -21,7 +21,6 @@ pub enum Direction {
 pub struct Island {
     size : usize,
     grid: Vec<Vec<char>>,
-    difficulty_level: usize,
     pirate: Pirate,
     nb_hunters: usize,
     hunters: Vec<HunterMonkey>,
@@ -34,7 +33,7 @@ pub struct Island {
 
 impl Island {
 
-    pub fn new(new_size: usize, new_nb_hunters: usize, new_nb_erratics: usize, new_difficulty_level: usize, new_nb_max_bottles: usize) -> Self {
+    pub fn new(new_size: usize, new_nb_hunters: usize, new_nb_erratics: usize, new_nb_max_bottles: usize) -> Self {
         
         // Initializing the game
         let (
@@ -43,7 +42,7 @@ impl Island {
             bottles_coords, 
             erratics_coords, 
             hunters_coords
-        ) = Island::init_island(new_size, new_nb_hunters, new_nb_erratics, new_difficulty_level, new_nb_max_bottles);
+        ) = Island::init_island(new_size, new_nb_hunters, new_nb_erratics, new_nb_max_bottles);
 
         let mut new_bottles: Vec<Bottle> = Vec::new();
         for i in 0..new_nb_max_bottles {
@@ -63,7 +62,6 @@ impl Island {
         Self {
             size : new_size,
             grid : Island::create_grid(new_size),
-            difficulty_level : new_difficulty_level,
             pirate : Pirate::new(new_size, new_x_pirate, new_y_pirate),
             nb_hunters: new_nb_hunters,
             hunters : new_hunters,
@@ -75,20 +73,14 @@ impl Island {
         }
     }
 
-    fn init_island(new_size: usize, new_nb_hunters: usize, new_nb_erratics: usize, new_difficulty_level: usize, new_nb_max_bottles: usize) 
+    fn init_island(new_size: usize, new_nb_hunters: usize, new_nb_erratics: usize, new_nb_max_bottles: usize) 
         -> (usize, usize, usize, usize, Vec<[usize; 2]>, Vec<[usize; 2]>, Vec<[usize; 2]>)
     {
-        
         let (x_treasure, y_treasure) = Island::init_treasure(new_size);
-        println!("Treasure : [{},{}]\r",x_treasure,y_treasure);
         let (x_pirate, y_pirate) = Island::init_pirate(new_size,x_treasure,y_treasure);
-        println!("Pirate : [{},{}]\r",x_pirate,y_pirate);
         let bottles: Vec<[usize; 2]> = Island::init_bottles(new_size, new_nb_max_bottles);
-        println!("Bottles: {:?}", bottles.clone());
         let erratics = Island::init_erratics(new_size, new_nb_erratics, x_pirate, y_pirate);
-        println!("Erratics: {:?}", erratics.clone());
-        let hunters = Island::init_hunters(new_size, new_nb_erratics, x_pirate, y_pirate, erratics.clone());
-        println!("Erratics: {:?}", hunters.clone());
+        let hunters = Island::init_hunters(new_size, new_nb_hunters, x_pirate, y_pirate, erratics.clone());
         (x_treasure, y_treasure, x_pirate, y_pirate, bottles, erratics, hunters)
     }
 
@@ -189,10 +181,12 @@ impl Island {
     fn set_tiles(&mut self) {
         // '-' everywhere
         self.grid = (0..self.size).map(|_| (0..self.size).map(|_| '-').collect()).collect();
-        
-        // 'P' where the player is
-        self.grid[self.pirate.get_x()][self.pirate.get_y()] = 'P'; 
-        
+
+        // 'B' where the bottles are
+        for bottle in self.bottles.iter() {
+            self.grid[bottle.get_x()][bottle.get_y()] = 'B'; 
+        }
+
         // 'H' where hunters are
         for hunter in self.hunters.iter() {
             self.grid[hunter.get_x() as usize][hunter.get_y() as usize] = 'H'; 
@@ -203,15 +197,20 @@ impl Island {
             self.grid[erratic.get_x() as usize][erratic.get_y() as usize] = 'E'; 
         }
 
-        // 'B' where the bottles are
-        for bottle in self.bottles.iter() {
-            self.grid[bottle.get_x()][bottle.get_y()] = 'B'; 
-        }
+        // 'P' where the player is
+        self.grid[self.pirate.get_x()][self.pirate.get_y()] = 'P'; 
+        
+        // 'T' where the treasure is [DEBUG ONLY :)]
+        self.grid[self.treasure.get_x()][self.treasure.get_y()] = 'T'; 
 
     }
 
     pub fn refresh_display(&mut self) {
         Island::set_tiles(self);
+
+        for _ in 0..20{
+            println!("\r");
+        }
 
         for i in 0..self.grid.len() {
             println!("{:?}\r",self.grid[i])
@@ -259,10 +258,10 @@ impl Island {
             }
         }
 
-        // Loop to remove empty bottle
+        let mut i=0;
         for empty_bottle in empty_bottles.iter() {
-            for i in 0..self.bottles.len() {
-                if empty_bottle.clone() == self.bottles[i] {
+            for (i, bottle) in self.bottles.clone().iter_mut().enumerate() {
+                if empty_bottle.clone() == bottle.clone() {
                     self.bottles.remove(i);
                 }
             }
@@ -285,36 +284,16 @@ impl Island {
         &mut self.pirate
     }
 
-    pub fn get_bottles(&mut self) -> &mut Vec<Bottle> {
-        &mut self.bottles
-    }
-
     pub fn is_treasure_discovered(&mut self) -> bool {
         self.get_pirate().get_x() == self.get_treasure().get_x() && self.get_pirate().get_y() == self.get_treasure().get_y()
-    }
-
-    pub fn get_size(&mut self) -> usize {
-        self.size
-    }
-
-    pub fn set_size(&mut self, new_size: usize) {
-        self.size = new_size
     }
     
     pub fn get_hunters(&mut self) -> &mut Vec<HunterMonkey> {
         &mut self.hunters
     }
 
-    pub fn add_hunter(&mut self, hunter: HunterMonkey) {
-        self.hunters.push(hunter)
-    }
-
     pub fn get_erratics(&mut self) -> &mut Vec<ErraticMonkey> {
         &mut self.erratics
-    }
-    
-    pub fn add_erratic(&mut self, erratic: ErraticMonkey) {
-        self.erratics.push(erratic)
     }
 
     pub fn get_treasure(&self) -> Treasure {

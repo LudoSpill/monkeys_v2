@@ -8,23 +8,77 @@ use island::Island;
 
 mod game_engine;
 use game_engine::user_input;
-use game_engine::monkeys_moving;
+use game_engine::automated;
 
 fn main() {
-    let island = Island::new(10, 2, 2, 0, 2);
+    let island_size = 10;
+    let mut current_nb_erratic = 1;
+    let mut current_nb_hunters = 1;
+    let mut current_nb_bottles = 8;
+    let mut turn_counter = 0;
 
-    let island_mut = Arc::new(Mutex::new(island));
-    let island2 = island_mut.clone();
+    loop {
 
-    let monkeys_moving_thread = thread::spawn( || {
-        monkeys_moving::move_monkeys(island2);
-    });
+        current_nb_erratic = nb_erratic(turn_counter);
+        current_nb_hunters = nb_hunters(turn_counter, current_nb_hunters);
+        current_nb_bottles = nb_bottles(turn_counter);
+        println!("{} {} {} {}\r", turn_counter, current_nb_erratic,current_nb_hunters,current_nb_bottles);
 
-    let mut island = island_mut.lock().unwrap();
-    island.refresh_display();
-    std::mem::drop(island);
+        let island = Island::new(island_size, current_nb_hunters, current_nb_erratic, current_nb_bottles);
+        let island_mut = Arc::new(Mutex::new(island));
+        let island_mut_2 = island_mut.clone();
+        let island_move_monkeys = island_mut.clone();
 
-    user_input::get_user_input(island_mut);
-    monkeys_moving_thread.join().unwrap();
+        let monkeys_moving_thread = thread::spawn( || {
+            automated::move_monkeys(island_move_monkeys);
+        });
+
+        let mut island = island_mut.lock().unwrap();
+        island.refresh_display();
+        std::mem::drop(island);
+
+        user_input::get_user_input(island_mut);
+
+        monkeys_moving_thread.join().unwrap();
+        
+        let mut island = island_mut_2.lock().unwrap();
+        if !island.get_pirate().get_alive() {
+            break;
+        }
+        std::mem::drop(island);
+        turn_counter +=1;
+    }
+
+    fn nb_erratic(turn_nb: usize) -> usize {
+        turn_nb + 1
+    }
+
+    fn nb_hunters(turn_nb: usize, current_nb_hunters: usize) -> usize {
+        let nb_hunt: usize;
+        if turn_nb > 0 {
+            if turn_nb % 2 == 0 {
+                nb_hunt = current_nb_hunters+1;
+            }
+            else {
+                nb_hunt = current_nb_hunters;
+            }
+        }
+        else {
+            nb_hunt = 1;
+        }
+        
+        nb_hunt
+    }
+    
+    fn nb_bottles(turn_nb: usize) -> usize {
+        let nb_bot;
+        if turn_nb < 4 {
+            nb_bot = 8 - turn_nb;
+        }
+        else {
+            nb_bot = 5;
+        }
+        nb_bot
+    }
 
 }

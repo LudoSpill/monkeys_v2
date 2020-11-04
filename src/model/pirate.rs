@@ -5,13 +5,13 @@ use island::Direction;
 pub struct Pirate {
     x: usize,
     y: usize,
-    current_energy: i8,
-    max_energy: i8,
+    current_energy: i16,
+    max_energy: i16,
     is_alive: bool,
     island_size: usize
 }
 
-const MAX_ENERGY: i8 = 100;
+const MAX_ENERGY: i16 = 100;
 
 
 impl Pirate {
@@ -44,15 +44,15 @@ impl Pirate {
         self.y = new_y
     }
 
-    pub fn get_current_energy(&self) -> i8 {
+    pub fn get_current_energy(&self) -> i16 {
         self.current_energy.clone()
     }
 
-    pub fn set_current_energy(&mut self, new_energy: i8) {
+    pub fn set_current_energy(&mut self, new_energy: i16) {
         self.current_energy = new_energy
     }
     
-    pub fn get_max_energy(&self) -> i8 {
+    pub fn get_max_energy(&self) -> i16 {
         self.max_energy.clone()
     }
 
@@ -65,7 +65,12 @@ impl Pirate {
     }
 
     pub fn drink_bottle(&mut self, energetic_value: usize){
-        self.set_current_energy(self.get_current_energy() + energetic_value as i8);
+        if (self.get_current_energy() + energetic_value as i16) > 100 {
+            self.set_current_energy(100);
+        }
+        else {
+            self.set_current_energy(self.get_current_energy() + energetic_value as i16);
+        }
     }
 
     pub fn move_pirate(&mut self, dir: Direction) {

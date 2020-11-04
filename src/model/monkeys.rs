@@ -188,14 +188,10 @@ impl MonkeyMove for HunterMonkey{
         let angle_to_pirate = self.get_angle_to_pirate(pirate);
         // println!("Angle to pirate : {}\r",angle_to_pirate);
 
-        for _ in 0..20{
-            println!("\r");
-        }
-
         let pot_directions = HunterMonkey::get_potential_direction(angle_to_pirate);
-        println!("potential dirs : {:?}\r", pot_directions);
+        // println!("potential dirs : {:?}\r", pot_directions);
         let unavailable_directions = self.get_unavailable_directions(hunters, erratics);
-        println!("unavail dirs : {:?}\r", unavailable_directions);
+        // println!("unavail dirs : {:?}\r", unavailable_directions);
         let mut actual_direction_indice = 0;
 
         for i in 0..pot_directions.len() {
@@ -207,7 +203,7 @@ impl MonkeyMove for HunterMonkey{
         }
 
         let actual_direction = pot_directions[actual_direction_indice].clone();
-        println!("Chosen dir: {:?}\r", actual_direction);
+        // println!("Chosen dir: {:?}\r", actual_direction);
 
         match actual_direction {
             Direction::UP => self.set_x(self.x-1),
@@ -337,8 +333,5 @@ impl MonkeyMove for ErraticMonkey{
             _ => ()
         }
     }
-
-    
-
 }
 

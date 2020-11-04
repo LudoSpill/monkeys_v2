@@ -67,7 +67,7 @@ pub fn get_user_input(island_mut: Arc<Mutex<Island>>) {
         island.handle_collisions();
 
         // Check if treasure was found
-        if island.is_treasure_discovered() {
+        if island.is_treasure_discovered() && island.get_pirate().get_alive(){
             println!("Gagné !\r");
             break;
         }

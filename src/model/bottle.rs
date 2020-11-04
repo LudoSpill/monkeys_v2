@@ -4,6 +4,7 @@ pub struct Bottle {
     y : usize,
     energetic_value : usize,
     is_visible : bool,
+    is_respawning : bool,
     island_size : usize
 }
 
@@ -18,6 +19,7 @@ impl Bottle {
             y : new_y,
             energetic_value : DEFAULT_ENERGETIC_VALUE,
             is_visible : true,
+            is_respawning : false,
             island_size : new_island_size
         }
     }
