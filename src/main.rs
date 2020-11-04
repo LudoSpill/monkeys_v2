@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 use std::sync::Arc;
-use std::thread;
+use std::{thread, time};
+
 
 mod model;
 use model::island;
@@ -18,6 +19,8 @@ fn main() {
     let mut turn_counter = 0;
 
     loop {
+
+        print_next_level(turn_counter);
 
         current_nb_erratic = nb_erratic(turn_counter);
         current_nb_hunters = nb_hunters(turn_counter, current_nb_hunters);
@@ -47,6 +50,7 @@ fn main() {
         }
         std::mem::drop(island);
         turn_counter +=1;
+
     }
 
     fn nb_erratic(turn_nb: usize) -> usize {
@@ -66,7 +70,7 @@ fn main() {
         else {
             nb_hunt = 1;
         }
-        
+
         nb_hunt
     }
     
@@ -79,6 +83,21 @@ fn main() {
             nb_bot = 5;
         }
         nb_bot
+    }
+
+    fn print_next_level(turn_nb: usize) {
+        for _ in 0..20{
+            println!("\r");
+        }
+        println!("#######################################\r");
+        println!("######### Next level: level {} #########\r",turn_nb);
+        println!("#######################################\r");
+        for _ in 0..5{
+            println!("\r");
+        }
+        
+        let sleeping_time = time::Duration::from_millis(5000);
+        thread::sleep(sleeping_time);
     }
 
 }
