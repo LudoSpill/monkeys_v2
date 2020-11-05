@@ -1,5 +1,5 @@
 # monkeys
-This is a 2D game coded fully in Rust as a school project.
+Monkeys is a 2D game coded fully in Rust for a school project.
 
 The principle is very simple:
 You play as a pirate that escaped a wrecked boat and landed on a island full of pirate hungry monkeys.
