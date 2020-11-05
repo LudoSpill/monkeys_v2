@@ -180,7 +180,7 @@ impl Island {
      */
     fn set_tiles(&mut self) {
         // '-' everywhere
-        self.grid = (0..self.size).map(|_| (0..self.size).map(|_| '-').collect()).collect();
+        self.grid = (0..self.size).map(|_| (0..self.size).map(|_| ' ').collect()).collect();
 
         // 'B' where the bottles are
         for bottle in self.bottles.iter() {
