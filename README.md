@@ -18,3 +18,6 @@ Interface explained:
 'E' represents the Erratic monkeys
 'H' represents the Hunter monkeys
 'T' represents the treasure [DEBUG ONLY]
+
+[Known issues]
+- When a monkey moves on a pirate, the player has to press a key to go back to the menu
