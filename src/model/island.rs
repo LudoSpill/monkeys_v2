@@ -201,7 +201,7 @@ impl Island {
         }
         
         // 'T' where the treasure is [DEBUG ONLY :)]
-        self.grid[self.treasure.get_x()][self.treasure.get_y()] = 'T'; 
+        // self.grid[self.treasure.get_x()][self.treasure.get_y()] = 'T'; 
 
     }
 

@@ -2,6 +2,10 @@ use std::sync::Mutex;
 use std::sync::Arc;
 use std::{thread, time};
 
+use std::io::{self, stdout};
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
 
 mod model;
 use model::island;
@@ -12,6 +16,31 @@ use game_engine::user_input;
 use game_engine::automated;
 
 fn main() {
+    print_menu(true);
+    let mut _stdout = stdout().into_raw_mode();
+    for key in io::stdin().keys() {
+        print_menu(false);
+        match key {
+            Ok(key) => match key {
+                
+                // Start case
+                Key::Char('s') => main_loop(),
+                Key::Char('S') => main_loop(),
+
+                // Quit case
+                Key::Char('q') => break,
+                Key::Char('Q') => break,
+
+                // Wrong key case
+                _ => (),
+            },
+            Err(_) =>(),
+        }
+
+    }
+}
+
+fn main_loop() {
     let island_size = 10;
     let mut current_nb_erratic = 1;
     let mut current_nb_hunters = 1;
@@ -50,54 +79,80 @@ fn main() {
         }
         std::mem::drop(island);
         turn_counter +=1;
-
     }
+    println!("> Press any key to continue...\r");
+}
 
-    fn nb_erratic(turn_nb: usize) -> usize {
-        turn_nb + 1
-    }
+fn nb_erratic(turn_nb: usize) -> usize {
+    turn_nb + 1
+}
 
-    fn nb_hunters(turn_nb: usize, current_nb_hunters: usize) -> usize {
-        let nb_hunt: usize;
-        if turn_nb > 0 {
-            if turn_nb % 2 == 0 {
-                nb_hunt = current_nb_hunters+1;
-            }
-            else {
-                nb_hunt = current_nb_hunters;
-            }
+fn nb_hunters(turn_nb: usize, current_nb_hunters: usize) -> usize {
+    let nb_hunt: usize;
+    if turn_nb > 0 {
+        if turn_nb % 2 == 0 {
+            nb_hunt = current_nb_hunters+1;
         }
         else {
-            nb_hunt = 1;
+            nb_hunt = current_nb_hunters;
         }
+    }
+    else {
+        nb_hunt = 1;
+    }
 
-        nb_hunt
+    nb_hunt
+}
+
+fn nb_bottles(turn_nb: usize) -> usize {
+    let nb_bot;
+    if turn_nb < 4 {
+        nb_bot = 8 - turn_nb;
+    }
+    else {
+        nb_bot = 5;
+    }
+    nb_bot
+}
+
+fn print_menu(at_start: bool) {
+    for _ in 0..20{
+        println!("\r");
+    }
+    println!("\r
+              ███╗   ███╗ ██████╗ ███╗   ██╗██╗  ██╗███████╗██╗   ██╗███████╗\r
+              ████╗ ████║██╔═══██╗████╗  ██║██║ ██╔╝██╔════╝╚██╗ ██╔╝██╔════╝\r
+              ██╔████╔██║██║   ██║██╔██╗ ██║█████╔╝ █████╗   ╚████╔╝ ███████╗\r
+              ██║╚██╔╝██║██║   ██║██║╚██╗██║██╔═██╗ ██╔══╝    ╚██╔╝  ╚════██║\r
+              ██║ ╚═╝ ██║╚██████╔╝██║ ╚████║██║  ██╗███████╗   ██║   ███████║\r
+              ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝\r
+    ");
+
+    if at_start{
+        // let sleeping_time = time::Duration::from_millis(2000);
+        // thread::sleep(sleeping_time);
+        
+        println!("> Press any key to continue...\r");
+
+    }
+    else {
+        println!("\r> Press 'S' to start the game\r");
+        println!("> Press 'Q' to quit the game\r");
     }
     
-    fn nb_bottles(turn_nb: usize) -> usize {
-        let nb_bot;
-        if turn_nb < 4 {
-            nb_bot = 8 - turn_nb;
-        }
-        else {
-            nb_bot = 5;
-        }
-        nb_bot
-    }
+}
 
-    fn print_next_level(turn_nb: usize) {
-        for _ in 0..20{
-            println!("\r");
-        }
-        println!("#######################################\r");
-        println!("######### Next level: level {} #########\r",turn_nb);
-        println!("#######################################\r");
-        for _ in 0..5{
-            println!("\r");
-        }
-        
-        let sleeping_time = time::Duration::from_millis(5000);
-        thread::sleep(sleeping_time);
+fn print_next_level(turn_nb: usize) {
+    for _ in 0..20{
+        println!("\r");
     }
-
+    println!("#######################################\r");
+    println!("######### Next level: level {} #########\r",turn_nb);
+    println!("#######################################\r");
+    for _ in 0..5{
+        println!("\r");
+    }
+    
+    let sleeping_time = time::Duration::from_millis(5000);
+    thread::sleep(sleeping_time);
 }

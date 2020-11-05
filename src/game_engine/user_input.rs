@@ -43,7 +43,7 @@ pub fn get_user_input(island_mut: Arc<Mutex<Island>>) {
                 },
 
                 // Quit case
-                Key::Ctrl('q') => {
+                Key::Char('q') => {
                     let mut island = island_mut.lock().expect("Erreur lock island");
                     let pirate = island.get_pirate();
                     pirate.set_alive(false);
@@ -52,7 +52,7 @@ pub fn get_user_input(island_mut: Arc<Mutex<Island>>) {
                 // Wrong key case
                 _ => println!("Wrong key pressed {:?}\r", key),
             },
-            Err(_) =>(), //TODO
+            Err(_) =>(),
         }
 
         let mut island = island_mut.lock().expect("island2 lock error");
