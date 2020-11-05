@@ -187,6 +187,9 @@ impl Island {
             self.grid[bottle.get_x()][bottle.get_y()] = 'B'; 
         }
 
+        // 'P' where the player is
+        self.grid[self.pirate.get_x()][self.pirate.get_y()] = 'P'; 
+
         // 'H' where hunters are
         for hunter in self.hunters.iter() {
             self.grid[hunter.get_x() as usize][hunter.get_y() as usize] = 'H'; 
@@ -196,9 +199,6 @@ impl Island {
         for erratic in self.erratics.iter() {
             self.grid[erratic.get_x() as usize][erratic.get_y() as usize] = 'E'; 
         }
-
-        // 'P' where the player is
-        self.grid[self.pirate.get_x()][self.pirate.get_y()] = 'P'; 
         
         // 'T' where the treasure is [DEBUG ONLY :)]
         self.grid[self.treasure.get_x()][self.treasure.get_y()] = 'T'; 

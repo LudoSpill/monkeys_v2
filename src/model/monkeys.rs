@@ -113,25 +113,25 @@ impl HunterMonkey {
         // 4 special cases:
         if angle == HunterMonkey::to_radian(180.0) {
             potential_directions.push(Direction::UP);
-            potential_directions.push(Direction::LEFT);
-            potential_directions.push(Direction::RIGHT);
+            // potential_directions.push(Direction::LEFT);
+            // potential_directions.push(Direction::RIGHT);
 
         }
         else if angle == HunterMonkey::to_radian(-90.0) {
             potential_directions.push(Direction::LEFT);
-            potential_directions.push(Direction::UP);
-            potential_directions.push(Direction::DOWN);
+            // potential_directions.push(Direction::UP);
+            // potential_directions.push(Direction::DOWN);
 
         }
         else if angle == 0.0 {
             potential_directions.push(Direction::DOWN);
-            potential_directions.push(Direction::LEFT);
-            potential_directions.push(Direction::RIGHT);
+            // potential_directions.push(Direction::LEFT);
+            // potential_directions.push(Direction::RIGHT);
         }
         else if angle == HunterMonkey::to_radian(90.0) {
             potential_directions.push(Direction::RIGHT);
-            potential_directions.push(Direction::UP);
-            potential_directions.push(Direction::DOWN);
+            // potential_directions.push(Direction::UP);
+            // potential_directions.push(Direction::DOWN);
         }
 
         // 8 nominal cases:
@@ -186,12 +186,12 @@ impl HunterMonkey {
 impl MonkeyMove for HunterMonkey{
     fn monkey_move(&mut self, pirate: Pirate, hunters: Vec<HunterMonkey>, erratics: Vec<ErraticMonkey>){
         let angle_to_pirate = self.get_angle_to_pirate(pirate);
-        // println!("Angle to pirate : {}\r",angle_to_pirate);
+        println!("Angle to pirate : {}\r",angle_to_pirate);
 
         let pot_directions = HunterMonkey::get_potential_direction(angle_to_pirate);
-        // println!("potential dirs : {:?}\r", pot_directions);
+        println!("potential dirs : {:?}\r", pot_directions);
         let unavailable_directions = self.get_unavailable_directions(hunters, erratics);
-        // println!("unavail dirs : {:?}\r", unavailable_directions);
+        println!("unavail dirs : {:?}\r", unavailable_directions);
         let mut actual_direction_indice = 0;
 
         for i in 0..pot_directions.len() {
@@ -206,9 +206,15 @@ impl MonkeyMove for HunterMonkey{
         // println!("Chosen dir: {:?}\r", actual_direction);
 
         match actual_direction {
-            Direction::UP => self.set_x(self.x-1),
+            Direction::UP => {
+                self.set_x(self.x-1);
+                if self.x < 0 {self.x = 0};
+            },
             Direction::DOWN => self.set_x(self.x+1),
-            Direction::LEFT => self.set_y(self.y-1),
+            Direction::LEFT => {
+                self.set_y(self.y-1);
+                if self.y < 0 {self.y = 0};
+            },
             Direction::RIGHT => self.set_y(self.y+1),
             _ => ()
         }
